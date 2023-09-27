@@ -20,4 +20,6 @@
 }
 .errorPwd {
     font-size: 0.8em;
+    opacity: 0;
+    transition: opacity 0.5s ease;
 }

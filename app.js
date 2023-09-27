@@ -137,7 +137,6 @@ async function actionSignUp (objPost) {
 
   // Afegir l'usuari a les dades
   let user = {userName: userName, password: hash, token: token}
-  console.log(user)
   users.push(user)
   return {result: 'OK', userName: user.userName, token: token}
 }

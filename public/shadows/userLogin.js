@@ -20,7 +20,9 @@ class UserLogin extends HTMLElement {
         // Clona i afegeix el contingut del template al shadow
         this.shadow.appendChild(template.content.cloneNode(true));
 
-        // Definir els 'eventListeners' dels objectes (NO es pot fer des de l'HTML, al ser shadow no funciona)
+        // Definir els 'eventListeners' dels objectes 
+        // NO es pot fer des de l'HTML, al ser shadow no funciona
+        // Es recomana fer-ho amb '.bind(this, paràmetres ...)' per simplificar les crides a les funcions
         this.shadow.querySelector('#infoBtnLogOut').addEventListener('click', this.actionLogout.bind(this))
         this.shadow.querySelector('#loginForm').addEventListener('submit', this.actionLogin.bind(this))
         this.shadow.querySelector('#loginBtn').addEventListener('click', this.actionLogin.bind(this))
@@ -39,15 +41,11 @@ class UserLogin extends HTMLElement {
         // Valida que les dues contrasenyes del 'signUp' siguin iguals
         let refPassword = this.shadow.querySelector('#signUpPassword')
         let refPasswordCheck = this.shadow.querySelector('#signUpPasswordCheck')
-        let refError = this.shadow.querySelector('#signUpPasswordError')
-        let refButton = this.shadow.querySelector('#signUpBtnLogin')
 
         if (refPassword.value == refPasswordCheck.value) {
-            refError.style.opacity = 0
-            refButton.disabled = false
+            this.setViewSignUpStatus('initial')
         } else {
-            refError.style.opacity = 1
-            refButton.disabled = true
+            this.setViewSignUpStatus('passwordError')
         }
     }
 
@@ -115,22 +113,31 @@ class UserLogin extends HTMLElement {
 
     setViewSignUpStatus(status) {
         // Gestiona les diferents visualitzacions de la vista 'viewSignUpForm'
+        let refPasswordError = this.shadow.querySelector('#signUpPasswordError')
         let refError = this.shadow.querySelector('#signUpError')
         let refLoading = this.shadow.querySelector('#signUpLoading')
         let refButton = this.shadow.querySelector('#signUpBtn')
 
         switch (status) {
         case 'initial':
+            refPasswordError.style.opacity = 0
             refError.style.opacity = 0
             refLoading.style.opacity = 0
             refButton.disabled = false
             break
         case 'loading':
+            refPasswordError.style.opacity = 0
             refError.style.opacity = 0
             refLoading.style.opacity = 1
             refButton.disabled = true
             break
+        case 'passwordError':
+            refPasswordError.style.opacity = 0
+            refError.style.opacity = 1
+            refLoading.style.opacity = 1
+            refButton.disabled = true
         case 'error':
+            refPasswordError.style.opacity = 0
             refError.style.opacity = 1
             refLoading.style.opacity = 0
             refButton.disabled = true
@@ -233,28 +240,20 @@ class UserLogin extends HTMLElement {
             refPassword.value = ""
 
             // Mostrar l'error dos segons
-            this.setViewLoginStatus('error')
+            this.showView('viewLoginForm', 'error')
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             // Mostrar el formulari de login 'inicial'
-            this.setViewLoginStatus('initial')
+            this.showView('viewLoginForm', 'initial')
         }           
     }
 
     async actionSignUp() {
-        let refInfoUser = this.shadow.querySelector('#infoUser')
         let refSignUpUserName = this.shadow.querySelector('#signUpUserName')
         let refPassword = this.shadow.querySelector('#signUpPassword')
-        let refError = this.shadow.querySelector('#signUpError')
-        let refLoading = this.shadow.querySelector('#signUpLoading')
-        let refButtons = this.shadow.querySelector('#signUpButtons')
 
         // Mostrar la vista
-        this.showView('viewSignUpForm')
-
-        // Mostrar el loading i amagar el botó de logout
-        refLoading.style.opacity = 1
-        refButtons.style.display = 'none'
+        this.showView('viewSignUpForm', 'loading')
 
         let requestData = {
             callType: 'actionSignUp',
@@ -264,20 +263,17 @@ class UserLogin extends HTMLElement {
         let resultData = await this.callServer(requestData)
         if (resultData.result == 'OK') {
             this.setUserInfo(resultData.userName, resultData.token)
-            this.showView('viewInfo')
+            this.showView('viewInfo', 'logged')
         } else {
-            // Esborrar totes les dades del localStorage
-            window.localStorage.clear() 
-            refSignUpUserName.innerText = ""
-            
-            // Mostrar l'error dos segons
-            refError.style.opacity = 1
-            refLoading.style.opacity = 0
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
             // Esborrar el password
             refPassword.value = ""
-            this.showView('viewsignUpForm')
+          
+            // Mostrar l'error dos segons
+            this.showView('viewSignUpForm', 'error')
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Mostrar el formulari de signUp 'inicial'
+            this.showView('viewSignUpForm', 'initial')
         }           
     }
 
