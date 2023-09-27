@@ -37,7 +37,7 @@ app.use(express.json());
 // Activar el servidor 
 const httpServer = app.listen(port, appListen)
 async function appListen () {
-  await shadows.init('./public/shadows')
+  await shadows.init('./public/index.html', './public/shadows')
   console.log(`Example app listening on: http://localhost:${port}`)
 }
 
@@ -49,6 +49,14 @@ function shutDown() {
   httpServer.close()
   db.end()
   process.exit(0);
+}
+
+// Configurar la direcció '/index-dev.html' per retornar
+// la pàgina que descarrega tots els shadows (desenvolupament)
+app.get('/index-dev.html', getIndexDev)
+async function getIndexDev (req, res) {
+  res.setHeader('Content-Type', 'text/html');
+  res.send(shadows.getIndexDev())
 }
 
 // Configurar la direcció '/shadows.js' per retornar
@@ -126,7 +134,7 @@ async function actionSignUp (objPost) {
   let userPassword = objPost.userPassword
   let hash = crypto.createHash('md5').update(userPassword).digest("hex")
   let token = uuidv4()
-console.log(token)
+
   // Afegir l'usuari a les dades
   let user = {userName: userName, password: hash, token: token}
   console.log(user)
