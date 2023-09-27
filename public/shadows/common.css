@@ -1,0 +1,12 @@
+/*
+Aquest CSS és comú a tots els 'shadows' que el criden amb
+@import url("/shadows/common.css");
+*/
+.loading {
+    color: green;
+    display: none;
+}
+.error {
+    color: red;
+    display: none;
+}

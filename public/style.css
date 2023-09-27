@@ -1,0 +1,11 @@
+body {
+  font-family: "Open Sans", sans-serif;
+  margin: 25;
+  user-select: none;
+}
+#loading {
+  display: none;
+}
+#results {
+  display: none;
+}
