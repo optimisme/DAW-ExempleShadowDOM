@@ -280,6 +280,7 @@ class UserLogin extends HTMLElement {
     async callServer(requestData) {
         // Fer la petició al servidor
         let resultData = null
+        
         try {
             let result = await fetch('/ajaxCall', {
                 method: 'POST',
