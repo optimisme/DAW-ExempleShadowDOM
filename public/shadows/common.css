@@ -4,9 +4,11 @@ Aquest CSS és comú a tots els 'shadows' que el criden amb
 */
 .loading {
     color: green;
-    display: none;
+    opacity: 1;
+    transition: opacity 0.5s ease;
 }
 .error {
     color: red;
-    display: none;
+    opacity: 1;
+    transition: opacity 0.5s ease;
 }

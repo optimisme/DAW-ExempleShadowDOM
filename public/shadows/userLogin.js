@@ -22,62 +22,150 @@ class UserLogin extends HTMLElement {
 
         // Definir els 'eventListeners' dels objectes (NO es pot fer des de l'HTML, al ser shadow no funciona)
         this.shadow.querySelector('#infoBtnLogOut').addEventListener('click', this.actionLogout.bind(this))
-        this.shadow.querySelector('#loginBtnLogin').addEventListener('click', this.actionLogin.bind(this))
-        this.shadow.querySelector('#loginShowSignUpForm').addEventListener('click', this.showSignUpForm.bind(this))
+        this.shadow.querySelector('#loginForm').addEventListener('submit', this.actionLogin.bind(this))
+        this.shadow.querySelector('#loginBtn').addEventListener('click', this.actionLogin.bind(this))
+        this.shadow.querySelector('#loginShowSignUpForm').addEventListener('click', this.showView.bind(this, 'viewSignUpForm', 'initial'))
+        this.shadow.querySelector('#signUpForm').addEventListener('submit', this.actionLogin.bind(this))
+        this.shadow.querySelector('#signUpPassword').addEventListener('input', this.checkSignUpPasswords.bind(this))
+        this.shadow.querySelector('#signUpPasswordCheck').addEventListener('input', this.checkSignUpPasswords.bind(this))
         this.shadow.querySelector('#signUpBtn').addEventListener('click', this.actionSignUp.bind(this))
-        this.shadow.querySelector('#signUpShowLoginForm').addEventListener('click', this.showLoginForm.bind(this))
+        this.shadow.querySelector('#signUpShowLoginForm').addEventListener('click', this.showView.bind(this, 'viewLoginForm', 'initial'))
 
         // Automàticament, validar l'usuari per 'token' (si n'hi ha)
         await this.actionCheckUserByToken()
     } 
 
-    hideAll () {
-        // Amagar totes les vistes
-        this.shadow.querySelector('#info').style.display = 'none'
-        this.shadow.querySelector('#loginForm').style.display = 'none'
-        this.shadow.querySelector('#signUpForm').style.display = 'none'
+    checkSignUpPasswords () {
+        // Valida que les dues contrasenyes del 'signUp' siguin iguals
+        let refPassword = this.shadow.querySelector('#signUpPassword')
+        let refPasswordCheck = this.shadow.querySelector('#signUpPasswordCheck')
+        let refError = this.shadow.querySelector('#signUpPasswordError')
+        let refButton = this.shadow.querySelector('#signUpBtnLogin')
+
+        if (refPassword.value == refPasswordCheck.value) {
+            refError.style.opacity = 0
+            refButton.disabled = false
+        } else {
+            refError.style.opacity = 1
+            refButton.disabled = true
+        }
     }
 
-    showInfo () {
-        // Mostrar la vista de login, restaurar els estils
-        this.hideAll()
-        this.shadow.querySelector('#info').style.removeProperty('display')
-        this.shadow.querySelector('#infoUser').style.removeProperty('display')
-        this.shadow.querySelector('#infoLoading').style.removeProperty('display')
-        this.shadow.querySelector('#infoBtnLogOut').style.removeProperty('display')
-
+    setUserInfo(userName, token) {
+        // Guarda o neteja les dades del localStorage
+        if (userName != "") {
+            window.localStorage.setItem("userName", userName)
+            window.localStorage.setItem("token", token)
+            this.setViewInfoStatus('logged')
+        } else {
+            window.localStorage.clear()
+            this.setViewInfoStatus('notLogged')
+        }
     }
 
-    showLoginForm () {
-        // Mostrar la vista de login, restaurar els estils
-        this.hideAll()
-        this.shadow.querySelector('#loginForm').style.removeProperty('display')
-        this.shadow.querySelector('#loginError').style.removeProperty('display')
-        this.shadow.querySelector('#loginLoading').style.removeProperty('display')
-        this.shadow.querySelector('#loginButtons').style.removeProperty('display')
-    }
-
-    showSignUpForm () {
-        // Mostrar la vista de sign up, restaurar els estils
-        this.hideAll()
-        this.shadow.querySelector('#signUpForm').style.removeProperty('display')
-        this.shadow.querySelector('#signUpError').style.removeProperty('display')
-        this.shadow.querySelector('#signUpLoading').style.removeProperty('display')
-        this.shadow.querySelector('#signUpButtons').style.removeProperty('display')
-    }
-
-    async actionCheckUserByToken() {
+    setViewInfoStatus(status) {
+        // Gestiona les diferents visualitzacions de la vista 'viewInfo'
         let refUserName = this.shadow.querySelector('#infoUser')
         let refLoading = this.shadow.querySelector('#infoLoading')
         let refButton = this.shadow.querySelector('#infoBtnLogOut')
 
-        // Mostrar la vista
-        this.showInfo()
+        switch (status) {
+        case 'loading':
+            refUserName.innerText = ""
+            refLoading.style.opacity = 1
+            refButton.disabled = true
+            break
+        case 'logged':
+            refUserName.innerText = window.localStorage.getItem("userName")
+            refLoading.style.opacity = 0
+            refButton.disabled = false
+            break
+        case 'notLogged':
+            refUserName.innerText = ""
+            refLoading.style.opacity = 0
+            refButton.disabled = true
+            break
+        }
+    }
 
-        // Mostrar el loading i amagar el botó de logout
-        refUserName.style.display = 'none'
-        refLoading.style.display = 'block'
-        refButton.style.display = 'none'
+    setViewLoginStatus(status) {
+        // Gestiona les diferents visualitzacions de la vista 'viewLoginForm'
+        let refError = this.shadow.querySelector('#loginError')
+        let refLoading = this.shadow.querySelector('#loginLoading')
+        let refButton = this.shadow.querySelector('#loginBtn')
+
+        switch (status) {
+        case 'initial':
+            refError.style.opacity = 0
+            refLoading.style.opacity = 0
+            refButton.disabled = false
+            break
+        case 'loading':
+            refError.style.opacity = 0
+            refLoading.style.opacity = 1
+            refButton.disabled = true
+            break
+        case 'error':
+            refError.style.opacity = 1
+            refLoading.style.opacity = 0
+            refButton.disabled = true
+            break
+        }
+    }
+
+    setViewSignUpStatus(status) {
+        // Gestiona les diferents visualitzacions de la vista 'viewSignUpForm'
+        let refError = this.shadow.querySelector('#signUpError')
+        let refLoading = this.shadow.querySelector('#signUpLoading')
+        let refButton = this.shadow.querySelector('#signUpBtn')
+
+        switch (status) {
+        case 'initial':
+            refError.style.opacity = 0
+            refLoading.style.opacity = 0
+            refButton.disabled = false
+            break
+        case 'loading':
+            refError.style.opacity = 0
+            refLoading.style.opacity = 1
+            refButton.disabled = true
+            break
+        case 'error':
+            refError.style.opacity = 1
+            refLoading.style.opacity = 0
+            refButton.disabled = true
+            break
+        }
+    }
+    
+
+    showView (viewName, viewStatus) {
+        // Amagar totes les vistes
+        this.shadow.querySelector('#viewInfo').style.display = 'none'
+        this.shadow.querySelector('#viewLoginForm').style.display = 'none'
+        this.shadow.querySelector('#viewSignUpForm').style.display = 'none'
+
+        // Mostrar la vista seleccionada, amb l'status indicat
+        switch (viewName) {
+        case 'viewInfo':
+            this.shadow.querySelector('#viewInfo').style.removeProperty('display')
+            this.setViewInfoStatus(viewStatus)
+            break
+        case 'viewLoginForm':
+            this.shadow.querySelector('#viewLoginForm').style.removeProperty('display')
+            this.setViewLoginStatus(viewStatus)
+            break
+        case 'viewSignUpForm':
+            this.shadow.querySelector('#viewSignUpForm').style.removeProperty('display')
+            this.setViewSignUpStatus(viewStatus)
+            break
+        }
+    }
+
+    async actionCheckUserByToken() {
+        // Mostrar la vista amb status 'loading'
+        this.setViewInfoStatus('loading')
+        this.showView('viewInfo')
 
         // Identificar usuari si hi ha "token" al "LocalStorage"
         let tokenValue = window.localStorage.getItem("token")
@@ -89,34 +177,24 @@ class UserLogin extends HTMLElement {
             let resultData = await this.callServer(requestData)
             if (resultData.result == 'OK') {
                 // Guardar el nom d'usuari al LocalStorage i també mostrar-lo
-                window.localStorage.setItem("userName", resultData.userName)
-                refUserName.innerText = resultData.userName
-                this.showInfo()
+                this.setUserInfo(resultData.userName, tokenValue)
+                this.setViewInfoStatus('logged')
             } else {
                 // Esborrar totes les dades del localStorage
-                window.localStorage.clear() 
-                refUserName.innerText = ""
-                this.showLoginForm()
+                this.setUserInfo('', '')
+                this.showView('viewLoginForm', 'initial')
             }           
         } else {
             // No hi ha token de sessió, mostrem el 'loginForm'
-            this.showLoginForm()
+            this.setUserInfo('', '')
+            this.showView('viewLoginForm', 'initial')
         }
     }
 
     async actionLogout() {
-        let refUserName = this.shadow.querySelector('#infoUser')
-        let refLoading = this.shadow.querySelector('#infoLoading')
-        let refButton = this.shadow.querySelector('#infoBtnLogOut')
-
-        // Mostrar la vista
-        this.showInfo()
-
-        // Mostrar el loading i amagar el botó de logout
-        refUserName.style.display = 'block'
-        refUserName.textContent = ""
-        refLoading.style.display = 'block'
-        refButton.style.display = 'none'
+        // Mostrar la vista amb status 'loading'
+        this.setViewInfoStatus('loading')
+        this.showView('viewInfo')
 
         // Identificar usuari si hi ha "token" al "LocalStorage"
         let tokenValue = window.localStorage.getItem("token")
@@ -125,54 +203,41 @@ class UserLogin extends HTMLElement {
                 callType: 'actionLogout',
                 token: tokenValue
             }
-            let resultData = await this.callServer(requestData)
-            // Tant fa la resposta, esborrem les dades de sessió
-            window.localStorage.clear()
-            refUserName.innerText = resultData.userName
+            await this.callServer(requestData)
         } 
-        this.showLoginForm()
+
+        // Tan fa la resposta, esborrem les dades
+        this.setUserInfo('', '')
+        this.showView('viewLoginForm', 'initial')
     }
 
     async actionLogin() {
-        let refInfoUser = this.shadow.querySelector('#infoUser')
-        let refLoginUserName = this.shadow.querySelector('#loginUserName')
+        let refUserName = this.shadow.querySelector('#loginUserName')
         let refPassword = this.shadow.querySelector('#loginPassword')
-        let refError = this.shadow.querySelector('#loginError')
-        let refLoading = this.shadow.querySelector('#loginLoading')
-        let refButtons = this.shadow.querySelector('#loginButtons')
 
         // Mostrar la vista
-        this.showLoginForm()
-
-        // Mostrar el loading i amagar el botó de logout
-        refLoading.style.display = 'block'
-        refButtons.style.display = 'none'
+        this.showView('viewLoginForm', 'loading')
 
         let requestData = {
             callType: 'actionLogin',
-            userName: refLoginUserName.value,
+            userName: refUserName.value,
             userPassword: refPassword.value
         }
+
         let resultData = await this.callServer(requestData)
         if (resultData.result == 'OK') {
-            // Guardar el nom d'usuari al LocalStorage i també mostrar-lo
-            window.localStorage.setItem("token", resultData.token)
-            window.localStorage.setItem("userName", resultData.userName)
-            refInfoUser.innerText = resultData.userName
-            this.showInfo()
+            this.setUserInfo(resultData.userName, resultData.token)
+            this.showView('viewInfo', 'logged')
         } else {
-            // Esborrar totes les dades del localStorage
-            window.localStorage.clear() 
-            refLoginUserName.innerText = ""
-            
-            // Mostrar l'error dos segons
-            refError.style.display = 'block'
-            refLoading.style.display = 'none'
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
             // Esborrar el password
             refPassword.value = ""
-            this.showLoginForm()
+
+            // Mostrar l'error dos segons
+            this.setViewLoginStatus('error')
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Mostrar el formulari de login 'inicial'
+            this.setViewLoginStatus('initial')
         }           
     }
 
@@ -185,10 +250,10 @@ class UserLogin extends HTMLElement {
         let refButtons = this.shadow.querySelector('#signUpButtons')
 
         // Mostrar la vista
-        this.showSignUpForm()
+        this.showView('viewSignUpForm')
 
         // Mostrar el loading i amagar el botó de logout
-        refLoading.style.display = 'block'
+        refLoading.style.opacity = 1
         refButtons.style.display = 'none'
 
         let requestData = {
@@ -198,24 +263,21 @@ class UserLogin extends HTMLElement {
         }
         let resultData = await this.callServer(requestData)
         if (resultData.result == 'OK') {
-            // Guardar el nom d'usuari al LocalStorage i també mostrar-lo
-            window.localStorage.setItem("token", resultData.token)
-            window.localStorage.setItem("userName", resultData.userName)
-            refInfoUser.innerText = resultData.userName
-            this.showInfo()
+            this.setUserInfo(resultData.userName, resultData.token)
+            this.showView('viewInfo')
         } else {
             // Esborrar totes les dades del localStorage
             window.localStorage.clear() 
             refSignUpUserName.innerText = ""
             
             // Mostrar l'error dos segons
-            refError.style.display = 'block'
-            refLoading.style.display = 'none'
+            refError.style.opacity = 1
+            refLoading.style.opacity = 0
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             // Esborrar el password
             refPassword.value = ""
-            this.showSignUpForm()
+            this.showView('viewsignUpForm')
         }           
     }
 

@@ -9,7 +9,6 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    margin-top: 16px;
 }
 .title {
     font-size: 1.25em;
@@ -18,4 +17,7 @@
 .form {
     display: flex;
     flex-direction: column;
+}
+.errorPwd {
+    font-size: 0.8em;
 }
