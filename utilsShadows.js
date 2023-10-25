@@ -1,5 +1,6 @@
 const fs = require('fs').promises
 const path = require('path');
+const glob = require('glob');
 
 class Obj {
 
@@ -12,19 +13,32 @@ class Obj {
     getIndexDev () { return this.indexDev }
     getShadows () { return this.shadows }
 
-    async processIndexDev (indexPath, shadowsPath) {
-        // Modifica l'arxiu 'index.html' per afegir-hi crides a tots els shadows
+    async processIndexDev(indexPath, shadowsPath) {
         try {
-            const jsFiles = (await fs.readdir(shadowsPath)).filter((name) => path.extname(name) === '.js')
+            // Busca archivos JavaScript en subcarpetas de shadowsPath
+            const jsFiles = await new Promise((resolve, reject) => {
+                glob('**/*.js', { cwd: shadowsPath }, (err, files) => {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        resolve(files);
+                    }
+                });
+            });
+    
             const scripts = jsFiles.map(jsFile => `<script src="/shadows/${jsFile}" defer></script>`).join('\n        ');
-            let indexTXT = await fs.readFile(indexPath, 'utf8')
-            return indexTXT.replace('<script src="/shadows.js" defer></script>', scripts);
-
+            let indexTXT = await fs.readFile(indexPath, 'utf8');
+            
+            // Reemplaza la etiqueta de script existente con los nuevos scripts
+            indexTXT = indexTXT.replace('<script src="/shadows.js" defer></script>', scripts);
+    
+            return indexTXT;
         } catch (error) {
-            console.error("Error 'processIndexDev':", error)
+            console.error("Error 'processIndexDev':", error);
+            return "<html><body>Error</body></html>";
         }
-        return "<html><body>Error</body></html>"
     }
+    
 
     async processShadows (shadowsPath) {
         // Crea un arxiu 'shadows.js' amb tots els codis dels shadows
