@@ -39,6 +39,7 @@ const httpServer = app.listen(port, appListen)
 async function appListen () {
   await shadows.init('./public/index.html', './public/shadows')
   console.log(`Example app listening on: http://localhost:${port}`)
+  console.log(`Development queries on: http://localhost:${port}/index-dev.html`)
 }
 
 // Close connections when process is killed
